@@ -1,13 +1,10 @@
 apiVersion: v2
-name: chart-name
+name: bitbucket-runner-autoscaler
 description: chart-description
 
 type: application
 
 version: 0.1.0
-
-# Set appVersion if relevant for your chart
-appVersion: "0.1.0"
 
 maintainers:
   - name: Labyrinth Labs
