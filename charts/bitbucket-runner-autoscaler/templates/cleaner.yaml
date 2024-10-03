@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitbucket-runner-controller-cleaner
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: bitbucket-runner-controller-cleaner
+spec:
+  selector:
+    matchLabels:
+      app: bitbucket-runner-controller-cleaner
+  template:
+    metadata:
+      name: bitbucket-runner-controller-cleaner-pod
+      labels:
+        app: bitbucket-runner-controller-cleaner
+    spec:
+      serviceAccountName: bitbucket-runner-controller
+      {{- if .Values.tolerations }}
+      tolerations: {{ .Values.tolerations | toYaml | nindent 8 }}
+      {{- end }}
+
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{ .Values.nodeSelector | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: bitbucket-runner-controller-cleaner
+        image: {{ .Values.cleaner.image }}:{{ .Values.cleaner.tag }}
+        command: ["python"]
+        args: ["autoscaler/start_cleaner.py"]
+        env: 
+        - name: BITBUCKET_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.existingSecretName | default "bitbucket-credentials" }}
+              key: bitbucketUsername
+        - name: BITBUCKET_APP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.existingSecretName | default "bitbucket-credentials" }}
+              key: bitbucketAppPassword
+        volumeMounts:
+        - name: runner-config
+          mountPath: /opt/conf/config
+          readOnly: true
+        imagePullPolicy: IfNotPresent
+      volumes:
+        - name: runner-config
+          configMap:
+            name: bitbucket-runner-config
+            defaultMode: 0644
+            items:
+              - key: runners_config.yaml
+                path: runners_config.yaml

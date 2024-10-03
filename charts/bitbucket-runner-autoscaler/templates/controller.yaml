@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitbucket-runner-controller
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: bitbucket-runner-controller
+spec:
+  selector:
+    matchLabels:
+      app: bitbucket-runner-controller
+  template:
+    metadata:
+      name: bitbucket-runner-controller
+      labels:
+        app: bitbucket-runner-controller
+    spec:
+      serviceAccountName: bitbucket-runner-controller
+      {{- if .Values.tolerations }}
+      tolerations: {{ .Values.tolerations | toYaml | nindent 8 }}
+      {{- end }}
+
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{ .Values.nodeSelector | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: bitbucket-runner-controller
+        image: {{ .Values.controller.image }}:{{ .Values.controller.tag }}
+        volumeMounts:
+        - name: runner-config
+          mountPath: /opt/conf/config
+          readOnly: true
+        - name: job-template
+          mountPath: /opt/conf/job_template
+          readOnly: true
+        env:
+        - name: BITBUCKET_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.existingSecretName | default "bitbucket-credentials" }}
+              key: bitbucketUsername
+        - name: BITBUCKET_APP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.existingSecretName | default "bitbucket-credentials" }}
+              key: bitbucketAppPassword
+        imagePullPolicy: IfNotPresent
+      volumes:
+        - name: runner-config
+          configMap:
+            name: bitbucket-runner-config
+            defaultMode: 0644
+            items:
+              - key: runners_config.yaml
+                path: runners_config.yaml
+        - name: job-template
+          configMap:
+            name: bitbucket-runner-template
+            defaultMode: 0644
+            items:
+              - key: job.yaml.template
+                path: job.yaml.template
