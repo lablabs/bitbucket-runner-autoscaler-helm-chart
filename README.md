@@ -7,7 +7,7 @@ We help companies build, run, deploy and scale software and infrastructure by em
 ---
 
 ## Description
-bitbucket-runner-autoscaler Helm chart.
+[bitbucket-runner-autoscaler](https://bitbucket.org/bitbucketpipelines/runners-autoscaler/src/master/) Helm chart.
 
 Check out [charts/bitbucket-runner-autoscaler/README.md](charts/bitbucket-runner-autoscaler/README.md) for more details about the chart.
 

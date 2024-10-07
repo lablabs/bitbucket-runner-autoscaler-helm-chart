@@ -1,54 +1,51 @@
+{{- if and .Values.controller.create .Values.controller.cleaner.create }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bitbucket-runner-controller-cleaner
-  namespace: {{ .Values.namespace }}
+  name: {{ template "bitbucketRunnerAutoscaler.fullname" . }}-cleaner
+  namespace: {{ .Release.Namespace }}
   labels:
-    app: bitbucket-runner-controller-cleaner
+    {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app: bitbucket-runner-controller-cleaner
+      {{- include "bitbucketRunnerAutoscalerCleaner.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      name: bitbucket-runner-controller-cleaner-pod
       labels:
-        app: bitbucket-runner-controller-cleaner
+        {{- include "bitbucketRunnerAutoscalerCleaner.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: bitbucket-runner-controller
-      {{- if .Values.tolerations }}
-      tolerations: {{ .Values.tolerations | toYaml | nindent 8 }}
-      {{- end }}
+      serviceAccountName: {{ include "bitbucketRunnerAutoscaler.serviceAccountName" . }}
+      tolerations: {{ include "bitbucketRunnerAutoscaler.cleanerTolerations" . | nindent 8 }}
+      nodeSelector: {{ include "bitbucketRunnerAutoscaler.cleanerNodeSelector" . | nindent 8 }}
 
-      {{- if .Values.nodeSelector }}
-      nodeSelector: {{ .Values.nodeSelector | toYaml | nindent 8 }}
-      {{- end }}
       containers:
-      - name: bitbucket-runner-controller-cleaner
-        image: {{ .Values.cleaner.image }}:{{ .Values.cleaner.tag }}
+      - name: cleaner
+        image: {{ .Values.controller.image }}:{{ .Values.controller.tag }}
         command: ["python"]
         args: ["autoscaler/start_cleaner.py"]
-        env: 
+        env:
         - name: BITBUCKET_USERNAME
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.existingSecretName | default "bitbucket-credentials" }}
+              name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
               key: bitbucketUsername
         - name: BITBUCKET_APP_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.existingSecretName | default "bitbucket-credentials" }}
+              name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
               key: bitbucketAppPassword
         volumeMounts:
-        - name: runner-config
+        - name: config
           mountPath: /opt/conf/config
           readOnly: true
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: {{ .Values.controller.imagePullPolicy }}
       volumes:
-        - name: runner-config
+        - name: config
           configMap:
-            name: bitbucket-runner-config
+            name: {{ template "bitbucketRunnerAutoscaler.fullname" . }}-config
             defaultMode: 0644
             items:
               - key: runners_config.yaml
                 path: runners_config.yaml
+{{- end }}

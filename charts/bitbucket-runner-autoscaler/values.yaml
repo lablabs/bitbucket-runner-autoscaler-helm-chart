@@ -1,63 +1,76 @@
-namespace: "bitbucket-runner-controller"
+nameOverride: ""
+fullnameOverride: ""
 
-cleaner:
-  enabled: true
-  image: bitbucketpipelines/runners-autoscaler
-  tag: "3.7.0"
+global:
+  tolerations: []
+  nodeSelector: {}
 
 controller:
-  enabled: true
+  create: true
   image: bitbucketpipelines/runners-autoscaler
   tag: "3.7.0"
+  imagePullPolicy: IfNotPresent
+  tolerations: []
+  nodeSelector: {}
+  cleaner:
+    create: true
+    tolerations: []
+    nodeSelector: {}
 
-tolerations: []
-nodeSelector: {}
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+rbac:
+  create: true
 
 # The name of the existing Kubernetes Secret containing the credentials to register runners with Bitbucket.
 # Leave this empty if you want to automatically create a new Secret with the provided Bitbucket credentials.
-credentialsSecretName: ""
+credentialSecret:
+  create: true
+  name: ""
+  # If you want Helm to create a new Secret for Bitbucket credentials, specify your Bitbucket username and app password here.
+  # These credentials will be used to authenticate the runners.
+  bitbucketUsername: ""
+  bitbucketAppPassword: ""
 
-# If you want Helm to create a new Secret for Bitbucket credentials, specify your Bitbucket username and app password here.
-# These credentials will be used to authenticate the runners.
-bitbucketUsername: ""
-bitbucketAppPassword: ""
-
-runnerTemplate:
+runner:
   image: docker-public.packages.atlassian.com/sox/atlassian/bitbucket-pipelines-runner
   tag: "1"
+  imagePullPolicy: Always
   tolerations: []
   # only amd64 is supported for Kubernetes deployments, docs: https://bitbucket.org/bitbucketpipelines/runners-autoscaler/src/master/
   nodeSelector: {}
-
-runnerConfig:
-  constants:
-    default_sleep_time_runner_setup: 10 # value in seconds
-    default_sleep_time_runner_delete: 5 # value in seconds
-    runner_api_polling_interval: 600 # value in seconds
-    runner_cool_down_period: 300 # value in seconds
-  groups:
-    - name: "default"
-      workspace: "{xxxx-xxxx-xxxx-xxxx-xxxx}" # include the curly braces
-      # repository: "{repository_uuid}" # optional, only needed if you want repository runners - include the curly braces
-      labels: # each runner will be created with this label list
-        - "my.group"
-      namespace: "bitbucket-runner" # Target namespace for runner job and secret. Cannot be the same as the controller namespace.
-      strategy: "percentageRunnersIdle"
-      # Set up the parameters for runners to create/delete via Bitbucket API.
-      parameters:
-        min: 1  # recommended minimum 1 must be in UI because fails, when new build is starting.
-        max: 10  #
-        scale_up_threshold: 0.5  # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up.
-        scale_down_threshold: 0.2  # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up.
-        scale_up_multiplier: 1.5  #  scale_up_multiplier > 1.
-        scale_down_multiplier: 0.5  #  0 < scale_down_multiplier < 1.
-      # Set up the resources for kubernetes job template.
-      # This section is optional. If not provided the default values for memory "4Gi" and cpu "1000m" in requests and limits will be used
-      resources:  # Autoscaler kubernetes job template resources available for tuning.
-        requests:
-          memory: "1Gi"
-          cpu: "1"
-        limits:
-          memory: "1Gi"
-          cpu: "1"
-
+  config:
+    constants:
+      default_sleep_time_runner_setup: 10 # value in seconds
+      default_sleep_time_runner_delete: 5 # value in seconds
+      runner_api_polling_interval: 600 # value in seconds
+      runner_cool_down_period: 300 # value in seconds
+    groups:
+      - name: "default"
+        # workspace: "{workspace_uuid}" # required, include the curly braces around the uuid. You can find the UUID on this url when logged in to your account https://bitbucket.org/!api/2.0/user
+        workspace: ""
+        # repository: "{repository_uuid}" # optional, only needed if you want repository runners - include the curly braces
+        labels: # each runner will be created with this label list
+          - "my.group"
+        namespace: "bitbucket-runner" # Target namespace for runner job and secret. Cannot be the same as the controller namespace.
+        strategy: "percentageRunnersIdle"
+        # Set up the parameters for runners to create/delete via Bitbucket API.
+        parameters:
+          min: 1  # recommended minimum 1 must be in UI because fails, when new build is starting.
+          max: 10  #
+          scale_up_threshold: 0.5  # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up.
+          scale_down_threshold: 0.2  # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up.
+          scale_up_multiplier: 1.5  #  scale_up_multiplier > 1.
+          scale_down_multiplier: 0.5  #  0 < scale_down_multiplier < 1.
+        # Set up the resources for kubernetes job template.
+        # This section is optional. If not provided the default values for memory "4Gi" and cpu "1000m" in requests and limits will be used
+        # resources:
+        #   requests:
+        #     memory: "1Gi"
+        #     cpu: "1"
+        #   limits:
+        #     memory: "1Gi"
+        #     cpu: "1"
