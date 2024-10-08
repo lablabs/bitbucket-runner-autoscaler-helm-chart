@@ -1,27 +1,30 @@
-{{- if and .Values.controller.create .Values.controller.cleaner.create }}
+{{- if .Values.cleaner.create }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "bitbucketRunnerAutoscaler.fullname" . }}-cleaner
+  name: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-cleaner
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
 spec:
+  replicas: {{ .Values.cleaner.replicas }}
   selector:
     matchLabels:
-      {{- include "bitbucketRunnerAutoscalerCleaner.selectorLabels" . | nindent 6 }}
+      {{- include "bitbucketRunnerAutoscaler.selectorLabels" (dict "component" "cleaner" "context" .) | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "bitbucketRunnerAutoscalerCleaner.selectorLabels" . | nindent 8 }}
+        {{- include "bitbucketRunnerAutoscaler.podLabels" (dict "component" "cleaner" "context" .) | nindent 8 }}
     spec:
       serviceAccountName: {{ include "bitbucketRunnerAutoscaler.serviceAccountName" . }}
       tolerations: {{ include "bitbucketRunnerAutoscaler.cleanerTolerations" . | nindent 8 }}
       nodeSelector: {{ include "bitbucketRunnerAutoscaler.cleanerNodeSelector" . | nindent 8 }}
-
+      topologySpreadConstraints: {{ .Values.cleaner.topologySpreadConstraints | toYaml | nindent 8 }}
+      affinity: {{ .Values.cleaner.affinity | toYaml | nindent 8 }}
+      priorityClassName: {{ .Values.cleaner.priorityClassName }}
       containers:
       - name: cleaner
-        image: {{ .Values.controller.image }}:{{ .Values.controller.tag }}
+        image: {{ include "bitbucketRunnerAutoscaler.cleanerImage" . }}
         command: ["python"]
         args: ["autoscaler/start_cleaner.py"]
         env:
@@ -39,7 +42,7 @@ spec:
         - name: config
           mountPath: /opt/conf/config
           readOnly: true
-        imagePullPolicy: {{ .Values.controller.imagePullPolicy }}
+        imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
       volumes:
         - name: config
           configMap:

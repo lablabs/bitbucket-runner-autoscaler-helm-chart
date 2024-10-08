@@ -1,0 +1,29 @@
+{{- if and .Values.controller.pdb.enabled .Values.controller.create }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "bitbucketRunnerAutoscaler.pdbName" (dict "component" "controller" "context" .) }}
+  labels:
+    {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.controller.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "bitbucketRunnerAutoscaler.selectorLabels" (dict "component" "controller" "context" .) | nindent 6 }}
+{{- end }}
+
+{{- if and .Values.cleaner.pdb.enabled .Values.cleaner.create }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "bitbucketRunnerAutoscaler.pdbName" (dict "component" "cleaner" "context" .) }}
+  labels:
+    {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.cleaner.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "bitbucketRunnerAutoscaler.selectorLabels" (dict "component" "cleaner" "context" .) | nindent 6 }}
+{{- end }}

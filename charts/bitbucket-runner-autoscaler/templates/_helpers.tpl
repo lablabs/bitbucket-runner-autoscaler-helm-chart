@@ -30,35 +30,41 @@ Create chart name and version as used by the chart label.
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{/*
-Common labels
-*/}}
 {{- define "bitbucketRunnerAutoscaler.labels" -}}
-helm.sh/chart: {{ include "bitbucketRunnerAutoscaler.chart" . }}
+{{- $name := include "bitbucketRunnerAutoscaler.name" . -}}
+{{- $labels := dict -}}
+{{- $labels = merge $labels (dict "app.kubernetes.io/name" $name) -}}
+{{- $labels = merge $labels (dict "app.kubernetes.io/instance" .Release.Name) -}}
+{{- $labels = merge $labels (dict "app.kubernetes.io/managed-by" .Release.Service) -}}
 {{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- $labels = merge $labels (dict "app.kubernetes.io/version" .Chart.AppVersion) -}}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- if .Values.global.commonLabels }}
+{{- $labels = merge $labels .Values.global.commonLabels -}}
 {{- end }}
-
-{{/*
-Controller selector labels
-*/}}
-{{- define "bitbucketRunnerAutoscalerController.selectorLabels" -}}
-{{- include "bitbucketRunnerAutoscaler.labels" . }}
-app.kubernetes.io/name: {{ include "bitbucketRunnerAutoscaler.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: controller
+{{- toYaml $labels -}}
 {{- end }}
 
-{{/*
-Cleaner selector labels
-*/}}
-{{- define "bitbucketRunnerAutoscalerCleaner.selectorLabels" -}}
-{{- include "bitbucketRunnerAutoscaler.labels" . }}
-app.kubernetes.io/name: {{ include "bitbucketRunnerAutoscaler.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: cleaner
+{{- define "bitbucketRunnerAutoscaler.podLabels" -}}
+{{- $component := .component -}}
+{{- $context := .context -}}
+{{- $labels := include "bitbucketRunnerAutoscaler.labels" $context | fromYaml -}}
+{{- $labels = merge $labels (dict "app.kubernetes.io/component" $component) -}}
+{{- $componentValues := index $context.Values $component -}}
+{{- if $componentValues.podLabels }}
+{{- $labels = merge $labels $componentValues.podLabels -}}
+{{- end }}
+{{- toYaml $labels }}
+{{- end }}
+
+{{- define "bitbucketRunnerAutoscaler.selectorLabels" -}}
+{{- $component := .component -}}
+{{- $context := .context -}}
+{{- $labels := dict -}}
+{{- $labels = merge $labels (dict "app.kubernetes.io/name" (include "bitbucketRunnerAutoscaler.name" $context)) -}}
+{{- $labels = merge $labels (dict "app.kubernetes.io/instance" $context.Release.Name) -}}
+{{- $labels = merge $labels (dict "app.kubernetes.io/component" $component) -}}
+{{- toYaml $labels -}}
 {{- end }}
 
 {{/*
@@ -76,10 +82,10 @@ Create the name of the service account to use
 Create the name of the bitbucket secret to use
 */}}
 {{- define "bitbucketRunnerAutoscaler.secretName" -}}
-{{- if .Values.credentialSecret.create }}
-{{- default (include "bitbucketRunnerAutoscaler.fullname" .) .Values.credentialSecret.name }}
+{{- if .Values.credentialsSecret.create }}
+{{- default (include "bitbucketRunnerAutoscaler.fullname" .) .Values.credentialsSecret.name }}
 {{- else }}
-{{- default "default" .Values.credentialSecret.name }}
+{{- default "default" .Values.credentialsSecret.name }}
 {{- end }}
 {{- end }}
 
@@ -87,10 +93,8 @@ Create the name of the bitbucket secret to use
 Define tolerations to be used for cleaner service
 */}}
 {{- define "bitbucketRunnerAutoscaler.cleanerTolerations" -}}
-{{- if .Values.controller.cleaner.tolerations }}
-{{ .Values.controller.cleaner.tolerations | toYaml }}
-{{- else if .Values.controller.tolerations }}
-{{ .Values.controller.tolerations | toYaml }}
+{{- if .Values.cleaner.tolerations }}
+{{ .Values.cleaner.tolerations | toYaml }}
 {{- else if .Values.global.tolerations }}
 {{ .Values.global.tolerations | toYaml }}
 {{- else }}
@@ -102,10 +106,8 @@ Define tolerations to be used for cleaner service
 Define node selector for cleanup service
 */}}
 {{- define "bitbucketRunnerAutoscaler.cleanerNodeSelector" -}}
-{{- if .Values.controller.cleaner.nodeSelector }}
-{{ .Values.controller.cleaner.nodeSelector | toYaml }}
-{{- else if .Values.controller.nodeSelector }}
-{{ .Values.controller.nodeSelector | toYaml }}
+{{- if .Values.cleaner.nodeSelector }}
+{{ .Values.cleaner.nodeSelector | toYaml }}
 {{- else if .Values.global.nodeSelector }}
 {{ .Values.global.nodeSelector | toYaml }}
 {{- else }}
@@ -163,4 +165,58 @@ Define runner node selector
 {{- else }}
 {}
 {{- end }}
+{{- end }}
+
+{{/*
+Return the controller image name
+*/}}
+{{- define "bitbucketRunnerAutoscaler.controllerImage" -}}
+{{- $registryName := .Values.controller.image.registry -}}
+{{- $repositoryName := .Values.controller.image.repository -}}
+{{- $tag := .Values.controller.image.tag | toString -}}
+{{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- end -}}
+
+{{/*
+Return the cleaner image name
+*/}}
+{{- define "bitbucketRunnerAutoscaler.cleanerImage" -}}
+{{- $registryName := .Values.cleaner.image.registry -}}
+{{- $repositoryName := .Values.cleaner.image.repository -}}
+{{- $tag := .Values.cleaner.image.tag | toString -}}
+{{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- end -}}
+
+{{/*
+Return the runner image name
+*/}}
+{{- define "bitbucketRunnerAutoscaler.runnerImage" -}}
+{{- $registryName := .Values.runner.image.registry -}}
+{{- $repositoryName := .Values.runner.image.repository -}}
+{{- $tag := .Values.runner.image.tag | toString -}}
+{{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- end -}}
+
+{{/*
+Return the dind image name
+*/}}
+{{- define "bitbucketRunnerAutoscaler.dindImage" -}}
+{{- $registryName := .Values.runner.dind.registry -}}
+{{- $repositoryName := .Values.runner.dind.repository -}}
+{{- $tag := .Values.runner.dind.tag | toString -}}
+{{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- end -}}
+
+{{- define "bitbucketRunnerAutoscaler.pdbName" -}}
+{{- $component := .component -}}
+{{- $context := .context -}}
+{{- printf "%s-%s-pdb" (include "bitbucketRunnerAutoscaler.fullname" $context) $component -}}
+{{- end }}
+
+{{- define "bitbucketRunnerAutoscaler.templateSecret" -}}
+{{ tpl .Values.runner.template.secret . }}
+{{- end }}
+
+{{- define "bitbucketRunnerAutoscaler.templateJob" -}}
+{{ tpl .Values.runner.template.job . }}
 {{- end }}

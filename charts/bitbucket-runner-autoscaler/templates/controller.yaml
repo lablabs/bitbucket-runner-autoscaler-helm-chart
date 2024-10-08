@@ -2,25 +2,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "bitbucketRunnerAutoscaler.fullname" . }}-controller
+  name: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-controller
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
 spec:
+  replicas: {{ .Values.controller.replicas }}
   selector:
     matchLabels:
-      {{- include "bitbucketRunnerAutoscalerController.selectorLabels" . | nindent 6 }}
+      {{- include "bitbucketRunnerAutoscaler.selectorLabels" (dict "component" "controller" "context" .) | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "bitbucketRunnerAutoscalerController.selectorLabels" . | nindent 8 }}
+        {{- include "bitbucketRunnerAutoscaler.podLabels" (dict "component" "controller" "context" .) | nindent 8 }}
     spec:
       serviceAccountName: {{ include "bitbucketRunnerAutoscaler.serviceAccountName" . }}
       tolerations: {{ include "bitbucketRunnerAutoscaler.controllerTolerations" . | nindent 8 }}
       nodeSelector: {{ include "bitbucketRunnerAutoscaler.controllerNodeSelector" . | nindent 8 }}
+      topologySpreadConstraints: {{ .Values.controller.topologySpreadConstraints | toYaml | nindent 8 }}
+      affinity: {{ .Values.controller.affinity | toYaml | nindent 8 }}
+      priorityClassName: {{ .Values.controller.priorityClassName }}
       containers:
       - name: controller
-        image: {{ .Values.controller.image }}:{{ .Values.controller.tag }}
+        image: {{ include "bitbucketRunnerAutoscaler.controllerImage" . }}
         volumeMounts:
         - name: config
           mountPath: /opt/conf/config
@@ -39,18 +43,18 @@ spec:
             secretKeyRef:
               name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
               key: bitbucketAppPassword
-        imagePullPolicy: {{ .Values.controller.imagePullPolicy }}
+        imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
       volumes:
         - name: config
           configMap:
-            name: {{ template "bitbucketRunnerAutoscaler.fullname" . }}-config
+            name: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-config
             defaultMode: 0644
             items:
               - key: runners_config.yaml
                 path: runners_config.yaml
-        - name: {{ template "bitbucketRunnerAutoscaler.fullname" . }}-template
+        - name: template
           configMap:
-            name: template
+            name: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-template
             defaultMode: 0644
             items:
               - key: job.yaml.template
