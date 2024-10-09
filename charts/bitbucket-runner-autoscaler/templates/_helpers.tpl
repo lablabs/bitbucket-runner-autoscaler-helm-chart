@@ -93,78 +93,48 @@ Create the name of the bitbucket secret to use
 Define tolerations to be used for cleaner service
 */}}
 {{- define "bitbucketRunnerAutoscaler.cleanerTolerations" -}}
-{{- if .Values.cleaner.tolerations }}
-{{ .Values.cleaner.tolerations | toYaml }}
-{{- else if .Values.global.tolerations }}
-{{ .Values.global.tolerations | toYaml }}
-{{- else }}
-[]
-{{- end }}
+{{- $tolerations := .Values.cleaner.tolerations | default .Values.global.tolerations | default (list) }}
+{{- toYaml $tolerations }}
 {{- end }}
 
 {{/*
 Define node selector for cleanup service
 */}}
 {{- define "bitbucketRunnerAutoscaler.cleanerNodeSelector" -}}
-{{- if .Values.cleaner.nodeSelector }}
-{{ .Values.cleaner.nodeSelector | toYaml }}
-{{- else if .Values.global.nodeSelector }}
-{{ .Values.global.nodeSelector | toYaml }}
-{{- else }}
-{}
-{{- end }}
+{{- $nodeSelector := .Values.cleaner.nodeSelector | default .Values.global.nodeSelector | default (dict) }}
+{{- toYaml $nodeSelector }}
 {{- end }}
 
 {{/*
 Define tolerations to be used for controller service
 */}}
 {{- define "bitbucketRunnerAutoscaler.controllerTolerations" -}}
-{{- if .Values.controller.tolerations }}
-{{ .Values.controller.tolerations | toYaml }}
-{{- else if .Values.global.tolerations }}
-{{ .Values.global.tolerations | toYaml }}
-{{- else }}
-[]
-{{- end }}
+{{- $tolerations := .Values.controller.tolerations | default .Values.global.tolerations | default (list) }}
+{{- toYaml $tolerations }}
 {{- end }}
 
 {{/*
 Define node selector for controller service
 */}}
 {{- define "bitbucketRunnerAutoscaler.controllerNodeSelector" -}}
-{{- if .Values.controller.nodeSelector }}
-{{ .Values.controller.nodeSelector | toYaml }}
-{{- else if .Values.global.nodeSelector }}
-{{ .Values.global.nodeSelector | toYaml }}
-{{- else }}
-{}
-{{- end }}
+{{- $nodeSelector := .Values.controller.nodeSelector | default .Values.global.nodeSelector | default (dict) }}
+{{- toYaml $nodeSelector }}
 {{- end }}
 
 {{/*
 Define runner tolerations
 */}}
 {{- define "bitbucketRunnerAutoscaler.runnerTolerations" -}}
-{{- if .Values.runner.tolerations }}
-{{ .Values.runner.tolerations | toYaml }}
-{{- else if .Values.global.tolerations }}
-{{ .Values.global.tolerations | toYaml }}
-{{- else }}
-[]
-{{- end }}
+{{- $tolerations := .Values.runner.tolerations  | default (list) }}
+{{- toYaml $tolerations }}
 {{- end }}
 
 {{/*
 Define runner node selector
 */}}
 {{- define "bitbucketRunnerAutoscaler.runnerNodeSelector" -}}
-{{- if .Values.runner.nodeSelector }}
-{{ .Values.controller.runner.nodeSelector | toYaml }}
-{{- else if .Values.global.nodeSelector }}
-{{ .Values.global.nodeSelector | toYaml }}
-{{- else }}
-{}
-{{- end }}
+{{- $nodeSelector := .Values.runner.nodeSelector | default (dict) }}
+{{- toYaml $nodeSelector }}
 {{- end }}
 
 {{/*
@@ -201,9 +171,9 @@ Return the runner image name
 Return the dind image name
 */}}
 {{- define "bitbucketRunnerAutoscaler.dindImage" -}}
-{{- $registryName := .Values.runner.dind.registry -}}
-{{- $repositoryName := .Values.runner.dind.repository -}}
-{{- $tag := .Values.runner.dind.tag | toString -}}
+{{- $registryName := .Values.runner.dind.image.registry -}}
+{{- $repositoryName := .Values.runner.dind.image.repository -}}
+{{- $tag := .Values.runner.dind.image.tag | toString -}}
 {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- end -}}
 
@@ -211,12 +181,4 @@ Return the dind image name
 {{- $component := .component -}}
 {{- $context := .context -}}
 {{- printf "%s-%s-pdb" (include "bitbucketRunnerAutoscaler.fullname" $context) $component -}}
-{{- end }}
-
-{{- define "bitbucketRunnerAutoscaler.templateSecret" -}}
-{{ tpl .Values.runner.template.secret . }}
-{{- end }}
-
-{{- define "bitbucketRunnerAutoscaler.templateJob" -}}
-{{ tpl .Values.runner.template.job . }}
 {{- end }}

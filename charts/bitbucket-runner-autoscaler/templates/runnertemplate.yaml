@@ -10,5 +10,5 @@ data:
     apiVersion: v1
     kind: List
     items:
-      - {{ include "bitbucketRunnerAutoscaler.templateSecret" . | nindent 8 }}
-      - {{ include "bitbucketRunnerAutoscaler.templateJob" . | nindent 8 }}
+      - {{ tpl .Values.runner.template.secret . | nindent 8 }}
+      - {{ tpl .Values.runner.template.job . | nindent 8 }}

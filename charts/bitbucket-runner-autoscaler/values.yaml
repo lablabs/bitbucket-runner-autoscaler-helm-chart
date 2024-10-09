@@ -68,10 +68,11 @@ runner:
     pullPolicy: IfNotPresent
 
   dind:
-    registry: docker.io
-    repository: docker
-    tag: dind
-    pullPolicy: IfNotPresent
+    image:
+      registry: docker.io
+      repository: docker
+      tag: dind
+      pullPolicy: IfNotPresent
 
   tolerations: []
   # only amd64 is supported for Kubernetes deployments, docs: https://bitbucket.org/bitbucketpipelines/runners-autoscaler/src/master/
@@ -161,7 +162,7 @@ runner:
                     mountPath: /var/run
               - name: docker
                 image: {{ include "bitbucketRunnerAutoscaler.dindImage" . }}
-                imagePullPolicy: {{ .Values.runner.dind.pullPolicy }}
+                imagePullPolicy: {{ .Values.runner.dind.image.pullPolicy }}
                 securityContext:
                   privileged: true
                 volumeMounts:
@@ -212,3 +213,14 @@ runner:
         #   limits:
         #     memory: "1Gi"
         #     cpu: "1"
+
+extraManifests: []
+  # - |
+  #   apiVersion: v1
+  #   kind: ConfigMap
+  #   metadata:
+  #     name: example
+  #     namespace: {{ .Release.Namespace }}
+  #   data:
+  #     example: |
+  #       example: "example"
