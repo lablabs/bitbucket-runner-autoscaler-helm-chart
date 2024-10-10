@@ -1,0 +1,39 @@
+{{- if and .Values.controller.pdb.enabled .Values.controller.create }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "bitbucketRunnerAutoscaler.pdbName" (dict "component" "controller" "context" .) }}
+  labels:
+    {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
+spec:
+{{- if .Values.controller.pdb.minAvailable }}
+  minAvailable: {{ .Values.controller.pdb.minAvailable }}
+{{- end }}
+{{- if .Values.controller.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.controller.pdb.maxUnavailable }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "bitbucketRunnerAutoscaler.selectorLabels" (dict "component" "controller" "context" .) | nindent 6 }}
+{{- end }}
+
+{{- if and .Values.cleaner.pdb.enabled .Values.cleaner.create }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "bitbucketRunnerAutoscaler.pdbName" (dict "component" "cleaner" "context" .) }}
+  labels:
+    {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
+spec:
+{{- if .Values.cleaner.pdb.minAvailable }}
+  minAvailable: {{ .Values.cleaner.pdb.minAvailable }}
+{{- end }}
+{{- if .Values.cleaner.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.cleaner.pdb.maxUnavailable }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "bitbucketRunnerAutoscaler.selectorLabels" (dict "component" "cleaner" "context" .) | nindent 6 }}
+{{- end }}

@@ -1,0 +1,54 @@
+{{- if .Values.cleaner.create }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-cleaner
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.cleaner.replicas }}
+  selector:
+    matchLabels:
+      {{- include "bitbucketRunnerAutoscaler.selectorLabels" (dict "component" "cleaner" "context" .) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "bitbucketRunnerAutoscaler.podLabels" (dict "component" "cleaner" "context" .) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "bitbucketRunnerAutoscaler.serviceAccountName" . }}
+      tolerations: {{ include "bitbucketRunnerAutoscaler.cleanerTolerations" . | nindent 8 }}
+      nodeSelector: {{ include "bitbucketRunnerAutoscaler.cleanerNodeSelector" . | nindent 8 }}
+      topologySpreadConstraints: {{ .Values.cleaner.topologySpreadConstraints | toYaml | nindent 8 }}
+      affinity: {{ .Values.cleaner.affinity | toYaml | nindent 8 }}
+      priorityClassName: {{ .Values.cleaner.priorityClassName }}
+      containers:
+      - name: cleaner
+        image: {{ include "bitbucketRunnerAutoscaler.cleanerImage" . }}
+        command: ["python"]
+        args: ["autoscaler/start_cleaner.py"]
+        env:
+        - name: BITBUCKET_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
+              key: bitbucketUsername
+        - name: BITBUCKET_APP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
+              key: bitbucketAppPassword
+        volumeMounts:
+        - name: config
+          mountPath: /opt/conf/config
+          readOnly: true
+        imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "bitbucketRunnerAutoscaler.fullname" . }}-config
+            defaultMode: 0644
+            items:
+              - key: runners_config.yaml
+                path: runners_config.yaml
+{{- end }}
