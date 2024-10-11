@@ -124,7 +124,6 @@ runner:
             topologySpreadConstraints: {{ .Values.runner.topologySpreadConstraints | toYaml | nindent 16 }}
             affinity: {{ .Values.runner.affinity | toYaml | nindent 16 }}
             priorityClassName: {{ .Values.runner.priorityClassName }}
-            serviceAccountName: {{ include "bitbucketRunnerAutoscaler.runnerServiceAccountName" . }}
             containers:
               - name: runner
                 image: {{ include "bitbucketRunnerAutoscaler.runnerImage" . }} # This autoscaler needs the runner image to run, you can use the latest or pin any version you want.
@@ -199,7 +198,7 @@ runner:
         # repository: "{repository_uuid}" # optional, only needed if you want repository runners - include the curly braces
         labels:  # each runner will be created with this label list
           - "my.group"
-        namespace: "bitbucket-runner"  # Target namespace for runner job, secret and service account. Cannot be the same as the controller namespace.
+        namespace: "bitbucket-runner"  # Target namespace for runner job and secret. Cannot be the same as the controller namespace.
         strategy: "percentageRunnersIdle"
         # Set up the parameters for runners to create/delete via Bitbucket API.
         parameters:

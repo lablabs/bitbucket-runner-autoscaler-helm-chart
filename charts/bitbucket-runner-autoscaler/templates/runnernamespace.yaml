@@ -1,6 +1,13 @@
+{{- $allNamespaces := (list) }}
+{{- range .Values.runner.config.groups }}
+  {{- $allNamespaces = append $allNamespaces .namespace }}
+{{- end }}
+{{- range $namespace := $allNamespaces | uniq }}
+---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: bitbucket-runner
+  name: {{ $namespace }}
   labels:
-    {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
+    {{- include "bitbucketRunnerAutoscaler.labels" $ | nindent 4 }}
+{{- end }}

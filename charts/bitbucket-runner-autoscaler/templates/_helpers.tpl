@@ -182,14 +182,3 @@ Return the dind image name
 {{- $context := .context -}}
 {{- printf "%s-%s-pdb" (include "bitbucketRunnerAutoscaler.fullname" $context) $component -}}
 {{- end }}
-
-{{/*
-Create the name of the service account for runners
-*/}}
-{{- define "bitbucketRunnerAutoscaler.runnerServiceAccountName" -}}
-{{- if .Values.runner.serviceAccount.create }}
-{{- default (printf "%s-runner" (include "bitbucketRunnerAutoscaler.fullname" .)) .Values.runner.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.runner.serviceAccount.name }}
-{{- end }}
-{{- end }}
