@@ -65,7 +65,7 @@ bitbucket-runner-autoscaler Helm chart
 | runner.config.groups[0].parameters.scale_up_multiplier | float | `1.5` |  |
 | runner.config.groups[0].parameters.scale_up_threshold | float | `0.5` |  |
 | runner.config.groups[0].strategy | string | `"percentageRunnersIdle"` |  |
-| runner.config.groups[0].workspace | string | `"{e9c3d913-037f-4984-9c49-7706bf393a3d}"` |  |
+| runner.config.groups[0].workspace | string | `""` |  |
 | runner.dind.image.pullPolicy | string | `"IfNotPresent"` |  |
 | runner.dind.image.registry | string | `"docker.io"` |  |
 | runner.dind.image.repository | string | `"docker"` |  |

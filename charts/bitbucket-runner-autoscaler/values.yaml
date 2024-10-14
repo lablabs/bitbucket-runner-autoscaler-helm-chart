@@ -194,7 +194,7 @@ runner:
     groups:
       - name: "default"
         # workspace: "{workspace_uuid}" # required, include the curly braces around the uuid. You can find the UUID on this url when logged in to your account https://bitbucket.org/!api/2.0/user under .uuid
-        workspace: "{e9c3d913-037f-4984-9c49-7706bf393a3d}"
+        workspace: ""
         # repository: "{repository_uuid}" # optional, only needed if you want repository runners - include the curly braces
         labels:  # each runner will be created with this label list
           - "my.group"
