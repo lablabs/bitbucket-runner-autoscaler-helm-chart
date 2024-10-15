@@ -1,5 +1,5 @@
 {{- include "bitbucketRunnerAutoscaler.runnerNamespaces" . }}
-{{- range $namespace := .Namespaces }}
+{{- range $namespace := .RunnerNamespaces }}
 ---
 apiVersion: v1
 kind: Namespace
