@@ -1,0 +1,231 @@
+nameOverride: ""
+fullnameOverride: ""
+
+global:
+  tolerations: []
+  nodeSelector: {}
+  commonLabels: {}
+
+controller:
+  create: true
+  replicas: 1
+  image:
+    registry: docker.io
+    repository: bitbucketpipelines/runners-autoscaler
+    tag: "3.7.0"
+    pullPolicy: IfNotPresent
+  tolerations: []
+  nodeSelector: {}
+  topologySpreadConstraints: []
+  affinity: {}
+  priorityClassName: ""
+  podLabels: {}
+  pdb:
+    enabled: false
+    minAvailable: 1
+
+cleaner:
+  create: true
+  replicas: 1
+  image:
+    registry: docker.io
+    repository: bitbucketpipelines/runners-autoscaler
+    tag: "3.7.0"
+    pullPolicy: IfNotPresent
+  tolerations: []
+  nodeSelector: {}
+  topologySpreadConstraints: []
+  affinity: {}
+  priorityClassName: ""
+  podLabels: {}
+  pdb:
+    enabled: false
+    minAvailable: 1
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+rbac:
+  create: true
+
+# The name of the existing Kubernetes Secret containing the credentials to register runners with Bitbucket.
+# Leave this empty if you want to automatically create a new Secret with the provided Bitbucket credentials.
+credentialsSecret:
+  create: true
+  name: ""
+  # If you want Helm to create a new Secret for Bitbucket credentials, specify your Bitbucket username and app password here.
+  # These credentials will be used to authenticate the runners.
+  bitbucketUsername: ""
+  bitbucketAppPassword: ""
+
+runner:
+  image:
+    registry: docker-public.packages.atlassian.com
+    repository: sox/atlassian/bitbucket-pipelines-runner
+    tag: "1"
+    pullPolicy: IfNotPresent
+
+  dind:
+    image:
+      registry: docker.io
+      repository: docker
+      tag: dind
+      pullPolicy: IfNotPresent
+
+  tolerations: []
+  # only amd64 is supported for Kubernetes deployments, docs: https://bitbucket.org/bitbucketpipelines/runners-autoscaler/src/master/
+  nodeSelector: {}
+  topologySpreadConstraints: []
+  affinity: {}
+  priorityClassName: ""
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+
+  template:
+    secret: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: runner-oauth-credentials-<%runner_uuid%>  # mandatory, don't modify
+        labels:
+          account_uuid: <%account_uuid%>  # mandatory, don't modify
+      {%- if repository_uuid %}
+          repository_uuid: <%repository_uuid%>  # mandatory, don't modify
+      {%- endif %}
+          runner_uuid: <%runner_uuid%>  # mandatory, don't modify
+          runner_namespace: <%runner_namespace%>  # mandatory, don't modify
+      data:
+        oauth_client_id: <%oauth_client_id_base64%>
+        oauth_client_secret: <%oauth_client_secret_base64%>
+
+    job: |
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: runner-<%runner_uuid%>  # mandatory, don't modify
+      spec:
+        template:
+          metadata:
+            labels:
+              customer: shared
+              account_uuid: <%account_uuid%>  # mandatory, don't modify
+              runner_uuid: <%runner_uuid%>  # mandatory, don't modify
+          {%- if repository_uuid %}
+              repository_uuid: <%repository_uuid%>  # mandatory, don't modify
+          {%- endif %}
+              runner_namespace: <%runner_namespace%>  # mandatory, don't modify
+          spec:
+            tolerations: {{ include "bitbucketRunnerAutoscaler.runnerTolerations" . | nindent 16 }}
+            nodeSelector: {{ include "bitbucketRunnerAutoscaler.runnerNodeSelector" . | nindent 16 }}
+            topologySpreadConstraints: {{ .Values.runner.topologySpreadConstraints | toYaml | nindent 16 }}
+            affinity: {{ .Values.runner.affinity | toYaml | nindent 16 }}
+            priorityClassName: {{ .Values.runner.priorityClassName }}
+            serviceAccountName: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-runner
+            containers:
+              - name: runner
+                image: {{ include "bitbucketRunnerAutoscaler.runnerImage" . }} # This autoscaler needs the runner image to run, you can use the latest or pin any version you want.
+                imagePullPolicy: {{ .Values.runner.image.pullPolicy }}
+                resources:  # This is memory and cpu resources section that you can configure via config map settings file.
+                  requests:
+                    memory: "<%requests_memory%>"  # mandatory, don't modify
+                    cpu: "<%requests_cpu%>"  # mandatory, don't modify
+                  limits:
+                    memory: "<%limits_memory%>"  # mandatory, don't modify
+                    cpu: "<%limits_cpu%>"  # mandatory, don't modify
+                env:
+                  - name: ACCOUNT_UUID  # mandatory, don't modify
+                    value: "{<%account_uuid%>}"  # mandatory, don't modify
+              {%- if repository_uuid %}
+                  - name: REPOSITORY_UUID  # mandatory, don't modify
+                    value: "{<%repository_uuid%>}"  # mandatory, don't modify
+              {%- endif %}
+                  - name: RUNNER_UUID  # mandatory, don't modify
+                    value: "{<%runner_uuid%>}"  # mandatory, don't modify
+                  - name: OAUTH_CLIENT_ID
+                    valueFrom:
+                      secretKeyRef:
+                        name: runner-oauth-credentials-<%runner_uuid%>
+                        key: oauth_client_id
+                  - name: OAUTH_CLIENT_SECRET
+                    valueFrom:
+                      secretKeyRef:
+                        name: runner-oauth-credentials-<%runner_uuid%>
+                        key: oauth_client_secret
+                  - name: WORKING_DIRECTORY
+                    value: "/tmp"
+                volumeMounts:
+                  - name: tmp
+                    mountPath: /tmp
+                  - name: docker-containers
+                    mountPath: /var/lib/docker/containers
+                    readOnly: true
+                  - name: var-run
+                    mountPath: /var/run
+              - name: docker
+                image: {{ include "bitbucketRunnerAutoscaler.dindImage" . }}
+                imagePullPolicy: {{ .Values.runner.dind.image.pullPolicy }}
+                securityContext:
+                  privileged: true
+                volumeMounts:
+                  - name: tmp
+                    mountPath: /tmp
+                  - name: docker-containers
+                    mountPath: /var/lib/docker/containers
+                  - name: var-run
+                    mountPath: /var/run
+            restartPolicy: OnFailure
+            volumes:
+              - name: tmp
+              - name: docker-containers
+              - name: var-run
+        backoffLimit: 6
+        completions: 1
+        parallelism: 1
+
+  config:
+    constants:
+      default_sleep_time_runner_setup: 10  # value in seconds
+      default_sleep_time_runner_delete: 5  # value in seconds
+      runner_api_polling_interval: 600  # value in seconds
+      runner_cool_down_period: 300  # value in seconds
+    groups:
+      - name: "default"
+        # workspace: "{workspace_uuid}" # required, include the curly braces around the uuid. You can find the UUID on this url when logged in to your account https://bitbucket.org/!api/2.0/user under .uuid
+        workspace: ""
+        # repository: "{repository_uuid}" # optional, only needed if you want repository runners - include the curly braces
+        labels:  # each runner will be created with this label list
+          - "my.group"
+        namespace: "bitbucket-runner"  # Target namespace for runner job and secret. Cannot be the same as the controller namespace.
+        strategy: "percentageRunnersIdle"
+        # Set up the parameters for runners to create/delete via Bitbucket API.
+        parameters:
+          min: 1  # recommended minimum 1 must be in UI because fails, when new build is starting.
+          max: 10  #
+          scale_up_threshold: 0.5  # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up.
+          scale_down_threshold: 0.2  # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up.
+          scale_up_multiplier: 1.5  #  scale_up_multiplier > 1.
+          scale_down_multiplier: 0.5  #  0 < scale_down_multiplier < 1.
+        # Set up the resources for kubernetes job template.
+        # This section is optional. If not provided the default values for memory "4Gi" and cpu "1000m" in requests and limits will be used
+        # resources:
+        #   requests:
+        #     memory: "1Gi"
+        #     cpu: "1"
+        #   limits:
+        #     memory: "1Gi"
+        #     cpu: "1"
+
+extraManifests: []
+  # - |
+  #   apiVersion: v1
+  #   kind: ConfigMap
+  #   metadata:
+  #     name: example
+  #     namespace: {{ .Release.Namespace }}
+  #   data:
+  #     example: |
+  #       example: "example"

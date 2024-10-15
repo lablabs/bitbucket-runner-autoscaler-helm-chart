@@ -1,0 +1,10 @@
+{{- include "bitbucketRunnerAutoscaler.runnerNamespaces" . }}
+{{- range $namespace := .RunnerNamespaces }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $namespace }}
+  labels:
+    {{- include "bitbucketRunnerAutoscaler.labels" $ | nindent 4 }}
+{{- end }}

@@ -1,0 +1,4 @@
+{{- range .Values.extraManifests }}
+---
+{{ tpl . $ | nindent 0 }}
+{{- end }}

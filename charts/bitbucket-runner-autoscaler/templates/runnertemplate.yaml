@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-template
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
+data:
+  job.yaml.template: |
+    apiVersion: v1
+    kind: List
+    items:
+      - {{ tpl .Values.runner.template.secret . | nindent 8 }}
+      - {{ tpl .Values.runner.template.job . | nindent 8 }}
