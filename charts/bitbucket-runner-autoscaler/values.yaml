@@ -124,6 +124,7 @@ runner:
             topologySpreadConstraints: {{ .Values.runner.topologySpreadConstraints | toYaml | nindent 16 }}
             affinity: {{ .Values.runner.affinity | toYaml | nindent 16 }}
             priorityClassName: {{ .Values.runner.priorityClassName }}
+            serviceAccountName: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-runner
             containers:
               - name: runner
                 image: {{ include "bitbucketRunnerAutoscaler.runnerImage" . }} # This autoscaler needs the runner image to run, you can use the latest or pin any version you want.

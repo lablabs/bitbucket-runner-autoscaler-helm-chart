@@ -182,3 +182,15 @@ Return the dind image name
 {{- $context := .context -}}
 {{- printf "%s-%s-pdb" (include "bitbucketRunnerAutoscaler.fullname" $context) $component -}}
 {{- end }}
+
+{{- define "bitbucketRunnerAutoscaler.runnerNamespaces" -}}
+  {{- $allNamespaces := list }}
+  {{- range .Values.runner.config.groups }}
+    {{- if eq .namespace $.Release.Namespace }}
+      {{- fail (printf "Namespace '%s' cannot be the same as the operator namespace '%s'" .namespace $.Release.Namespace) }}
+    {{- end }}
+    {{- $allNamespaces = append $allNamespaces .namespace -}}
+  {{- end }}
+  {{- $uniqueNamespaces := uniq $allNamespaces }}
+  {{- $_ := set . "Namespaces" $uniqueNamespaces }}
+{{- end }}
