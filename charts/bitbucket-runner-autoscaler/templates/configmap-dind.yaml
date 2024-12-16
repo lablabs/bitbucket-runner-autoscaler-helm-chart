@@ -1,0 +1,16 @@
+{{- if gt (len .Values.runner.dind.registryMirrors) 0 }}
+{{- include "bitbucketRunnerAutoscaler.runnerNamespaces" . }}
+{{- range $namespace := .RunnerNamespaces }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bitbucketRunnerAutoscaler.fullname" $ }}-dind
+  namespace: {{ $namespace }}
+data:
+  daemon.json: |
+    {
+      "registry-mirrors": {{ $.Values.runner.dind.registryMirrors | toJson }}
+    }
+{{- end }}
+{{- end }}

@@ -73,6 +73,8 @@ runner:
       repository: docker
       tag: dind
       pullPolicy: IfNotPresent
+    registryMirrors: []
+    daemonConfigFile: /etc/docker/daemon.json
 
   tolerations: []
   # only amd64 is supported for Kubernetes deployments, docs: https://bitbucket.org/bitbucketpipelines/runners-autoscaler/src/master/
@@ -168,6 +170,11 @@ runner:
               - name: docker
                 image: {{ include "bitbucketRunnerAutoscaler.dindImage" . }}
                 imagePullPolicy: {{ .Values.runner.dind.image.pullPolicy }}
+                {{- if gt (len .Values.runner.dind.registryMirrors) 0 }}
+                env:
+                  - name: XDG_CONFIG_HOME
+                    value: {{ .Values.dind.daemonConfigFile }}
+                {{- end }}
                 securityContext:
                   privileged: true
                 volumeMounts:
@@ -177,11 +184,21 @@ runner:
                     mountPath: /var/lib/docker/containers
                   - name: var-run
                     mountPath: /var/run
+                  {{- if gt (len .Values.runner.dind.registryMirrors) 0 }}
+                  - name: dind
+                    mountPath: {{ .Values.dind.daemonConfigFile }}
+                    subPath: daemon.json
+                  {{- end }}
             restartPolicy: OnFailure
             volumes:
               - name: tmp
               - name: docker-containers
               - name: var-run
+              {{- if gt (len .Values.runner.dind.registryMirrors) 0 }}
+              - name: dind
+                configMap:
+                  name: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-dind
+              {{- end }}
         backoffLimit: 6
         completions: 1
         parallelism: 1
