@@ -170,11 +170,6 @@ runner:
               - name: docker
                 image: {{ include "bitbucketRunnerAutoscaler.dindImage" . }}
                 imagePullPolicy: {{ .Values.runner.dind.image.pullPolicy }}
-                {{- if gt (len .Values.runner.dind.registryMirrors) 0 }}
-                env:
-                  - name: XDG_CONFIG_HOME
-                    value: {{ .Values.runner.dind.daemonConfigFile }}
-                {{- end }}
                 securityContext:
                   privileged: true
                 volumeMounts:
