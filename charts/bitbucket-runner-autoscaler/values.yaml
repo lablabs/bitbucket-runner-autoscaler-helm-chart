@@ -173,7 +173,7 @@ runner:
                 {{- if gt (len .Values.runner.dind.registryMirrors) 0 }}
                 env:
                   - name: XDG_CONFIG_HOME
-                    value: {{ .Values.dind.daemonConfigFile }}
+                    value: {{ .Values.runner.dind.daemonConfigFile }}
                 {{- end }}
                 securityContext:
                   privileged: true
@@ -186,7 +186,7 @@ runner:
                     mountPath: /var/run
                   {{- if gt (len .Values.runner.dind.registryMirrors) 0 }}
                   - name: dind
-                    mountPath: {{ .Values.dind.daemonConfigFile }}
+                    mountPath: {{ .Values.runner.dind.daemonConfigFile }}
                     subPath: daemon.json
                   {{- end }}
             restartPolicy: OnFailure
