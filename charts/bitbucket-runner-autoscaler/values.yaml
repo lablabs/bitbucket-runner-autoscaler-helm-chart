@@ -73,7 +73,7 @@ runner:
       repository: docker
       tag: dind
       pullPolicy: IfNotPresent
-    registryMirrors: [] # e.g. registryMirrors: ["https://mirror.gcr.io"]
+    registryMirrors: []  # e.g. registryMirrors: ["https://mirror.gcr.io"]
     daemonConfigFile: /etc/docker/daemon.json
 
   tolerations: []
