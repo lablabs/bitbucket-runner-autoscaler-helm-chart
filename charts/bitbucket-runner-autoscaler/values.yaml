@@ -73,6 +73,8 @@ runner:
       repository: docker
       tag: dind
       pullPolicy: IfNotPresent
+    registryMirrors: []  # e.g. registryMirrors: ["https://mirror.gcr.io"]
+    daemonConfigFile: /etc/docker/daemon.json
 
   tolerations: []
   # only amd64 is supported for Kubernetes deployments, docs: https://bitbucket.org/bitbucketpipelines/runners-autoscaler/src/master/
@@ -177,11 +179,21 @@ runner:
                     mountPath: /var/lib/docker/containers
                   - name: var-run
                     mountPath: /var/run
+                  {{- if .Values.runner.dind.registryMirrors }}
+                  - name: dind
+                    mountPath: {{ .Values.runner.dind.daemonConfigFile }}
+                    subPath: daemon.json
+                  {{- end }}
             restartPolicy: OnFailure
             volumes:
               - name: tmp
               - name: docker-containers
               - name: var-run
+              {{- if .Values.runner.dind.registryMirrors }}
+              - name: dind
+                configMap:
+                  name: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-dind
+              {{- end }}
         backoffLimit: 6
         completions: 1
         parallelism: 1
