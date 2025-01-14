@@ -73,7 +73,7 @@ runner:
       repository: docker
       tag: dind
       pullPolicy: IfNotPresent
-    registryMirrors: []
+    registryMirrors: [] # e.g. registryMirrors: ["https://mirror.gcr.io"]
     daemonConfigFile: /etc/docker/daemon.json
 
   tolerations: []
@@ -179,7 +179,7 @@ runner:
                     mountPath: /var/lib/docker/containers
                   - name: var-run
                     mountPath: /var/run
-                  {{- if gt (len .Values.runner.dind.registryMirrors) 0 }}
+                  {{- if .Values.runner.dind.registryMirrors }}
                   - name: dind
                     mountPath: {{ .Values.runner.dind.daemonConfigFile }}
                     subPath: daemon.json
@@ -189,7 +189,7 @@ runner:
               - name: tmp
               - name: docker-containers
               - name: var-run
-              {{- if gt (len .Values.runner.dind.registryMirrors) 0 }}
+              {{- if .Values.runner.dind.registryMirrors }}
               - name: dind
                 configMap:
                   name: {{ include "bitbucketRunnerAutoscaler.fullname" . }}-dind
