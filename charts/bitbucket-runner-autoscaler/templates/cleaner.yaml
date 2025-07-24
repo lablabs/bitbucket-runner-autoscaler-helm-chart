@@ -28,6 +28,17 @@ spec:
         command: ["python"]
         args: ["autoscaler/start_cleaner.py"]
         env:
+        - name: ATLASSIAN_ACCOUNT_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
+              key: atlassianAccountEmail
+        - name: ATLASSIAN_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
+              key: atlassianApiToken
+        # App password - DEPRECATED
         - name: BITBUCKET_USERNAME
           valueFrom:
             secretKeyRef:

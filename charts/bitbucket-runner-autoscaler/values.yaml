@@ -12,7 +12,7 @@ controller:
   image:
     registry: docker.io
     repository: bitbucketpipelines/runners-autoscaler
-    tag: "3.7.0"
+    tag: "3.9.0"
     pullPolicy: IfNotPresent
   tolerations: []
   nodeSelector: {}
@@ -30,7 +30,7 @@ cleaner:
   image:
     registry: docker.io
     repository: bitbucketpipelines/runners-autoscaler
-    tag: "3.7.0"
+    tag: "3.9.0"
     pullPolicy: IfNotPresent
   tolerations: []
   nodeSelector: {}
@@ -55,7 +55,11 @@ rbac:
 credentialsSecret:
   create: true
   name: ""
-  # If you want Helm to create a new Secret for Bitbucket credentials, specify your Bitbucket username and app password here.
+  # If you want Helm to create a new Secret for Bitbucket credentials, specify your Atlassian account email and API token here.
+  # These credentials will be used to authenticate the runners.
+  atlassianAccountEmail: ""
+  atlassianApiToken: ""
+  # DEPRECATED: If you want Helm to create a new Secret for Bitbucket credentials, specify your Bitbucket username and app password here.
   # These credentials will be used to authenticate the runners.
   bitbucketUsername: ""
   bitbucketAppPassword: ""
