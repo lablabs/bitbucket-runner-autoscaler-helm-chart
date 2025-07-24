@@ -43,17 +43,6 @@ spec:
             secretKeyRef:
               name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
               key: atlassianApiToken
-        # App password - DEPRECATED
-        - name: BITBUCKET_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
-              key: bitbucketUsername
-        - name: BITBUCKET_APP_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
-              key: bitbucketAppPassword
         imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
       volumes:
         - name: config

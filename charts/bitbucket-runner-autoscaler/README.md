@@ -41,8 +41,6 @@ bitbucket-runner-autoscaler Helm chart
 | controller.topologySpreadConstraints | list | `[]` |  |
 | credentialsSecret.atlassianAccountEmail | string | `""` |  |
 | credentialsSecret.atlassianApiToken | string | `""` |  |
-| credentialsSecret.bitbucketAppPassword | string | `""` |  |
-| credentialsSecret.bitbucketUsername | string | `""` |  |
 | credentialsSecret.create | bool | `true` |  |
 | credentialsSecret.name | string | `""` |  |
 | extraManifests | list | `[]` |  |

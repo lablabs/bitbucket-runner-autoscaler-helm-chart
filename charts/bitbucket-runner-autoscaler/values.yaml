@@ -59,10 +59,6 @@ credentialsSecret:
   # These credentials will be used to authenticate the runners.
   atlassianAccountEmail: ""
   atlassianApiToken: ""
-  # DEPRECATED: If you want Helm to create a new Secret for Bitbucket credentials, specify your Bitbucket username and app password here.
-  # These credentials will be used to authenticate the runners.
-  bitbucketUsername: ""
-  bitbucketAppPassword: ""
 
 runner:
   image:
