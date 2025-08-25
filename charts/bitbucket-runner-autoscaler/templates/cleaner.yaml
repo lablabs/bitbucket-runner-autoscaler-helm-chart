@@ -28,16 +28,16 @@ spec:
         command: ["python"]
         args: ["autoscaler/start_cleaner.py"]
         env:
-        - name: BITBUCKET_USERNAME
+        - name: ATLASSIAN_ACCOUNT_EMAIL
           valueFrom:
             secretKeyRef:
               name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
-              key: bitbucketUsername
-        - name: BITBUCKET_APP_PASSWORD
+              key: atlassianAccountEmail
+        - name: ATLASSIAN_API_TOKEN
           valueFrom:
             secretKeyRef:
               name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
-              key: bitbucketAppPassword
+              key: atlassianApiToken
         volumeMounts:
         - name: config
           mountPath: /opt/conf/config
