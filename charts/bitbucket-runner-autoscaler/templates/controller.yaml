@@ -33,16 +33,16 @@ spec:
           mountPath: /opt/conf/job_template
           readOnly: true
         env:
-        - name: BITBUCKET_USERNAME
+        - name: ATLASSIAN_ACCOUNT_EMAIL
           valueFrom:
             secretKeyRef:
               name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
-              key: bitbucketUsername
-        - name: BITBUCKET_APP_PASSWORD
+              key: atlassianAccountEmail
+        - name: ATLASSIAN_API_TOKEN
           valueFrom:
             secretKeyRef:
               name: {{ include "bitbucketRunnerAutoscaler.secretName" . }}
-              key: bitbucketAppPassword
+              key: atlassianApiToken
         imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
       volumes:
         - name: config
