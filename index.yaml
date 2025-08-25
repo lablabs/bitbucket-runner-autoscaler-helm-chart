@@ -2,6 +2,20 @@ apiVersion: v1
 entries:
   bitbucket-runner-autoscaler:
   - apiVersion: v2
+    appVersion: 3.9.0
+    created: "2025-08-25T12:51:05.217501312Z"
+    description: Chart for deploying Bitbucket Runner Autoscaler.
+    digest: 2d0d43d18dc38c23027f64da73875822d4dda6fb1305700b88b7783352340046
+    maintainers:
+    - email: contact@lablabs.io
+      name: Labyrinth Labs
+      url: https://lablabs.io
+    name: bitbucket-runner-autoscaler
+    type: application
+    urls:
+    - https://github.com/lablabs/bitbucket-runner-autoscaler-helm-chart/releases/download/bitbucket-runner-autoscaler-0.3.0/bitbucket-runner-autoscaler-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
     appVersion: 3.7.0
     created: "2025-01-14T19:46:53.429718003Z"
     description: Chart for deploying Bitbucket Runner Autoscaler.
@@ -43,4 +57,4 @@ entries:
     urls:
     - https://github.com/lablabs/helm-chart-template/releases/download/chart-name-0.1.0/chart-name-0.1.0.tgz
     version: 0.1.0
-generated: "2025-01-14T19:46:53.429730126Z"
+generated: "2025-08-25T12:51:05.217521019Z"
