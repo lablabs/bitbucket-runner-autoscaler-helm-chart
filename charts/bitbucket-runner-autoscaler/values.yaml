@@ -120,10 +120,12 @@ runner:
               runner_namespace: <%runner_namespace%>  # mandatory, don't modify
           spec:
             tolerations: {{ include "bitbucketRunnerAutoscaler.runnerTolerations" . | nindent 16 }}
-            node_selector:
+            {%- if node_selector %}
+            nodeSelector:
             {%- for key, value in node_selector.items() %}
               <%key%>: <%value%>
             {%- endfor %}
+            {%- endif %}
             topologySpreadConstraints: {{ .Values.runner.topologySpreadConstraints | toYaml | nindent 16 }}
             affinity: {{ .Values.runner.affinity | toYaml | nindent 16 }}
             priorityClassName: {{ .Values.runner.priorityClassName }}
@@ -218,7 +220,7 @@ runner:
         # - amd64  → sets label to "linux" (default)
         # - arm64  → sets label to "linux.arm"
         # architecture: amd64
-        # Configure nodeSelector to ensure the runner is scheduled onto nodes. Default: `{customer: shared}`
+        # Configure nodeSelector to ensure the runner is scheduled onto nodes. Default: `{}`
         # node_selector:
         #   kubernetes.io/arch: amd64
         # Set up the parameters for runners to create/delete via Bitbucket API.
