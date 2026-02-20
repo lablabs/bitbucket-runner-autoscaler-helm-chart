@@ -2,7 +2,7 @@
 
 Chart for deploying Bitbucket Runner Autoscaler.
 
-![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.11.0](https://img.shields.io/badge/AppVersion-3.11.0-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.11.5](https://img.shields.io/badge/AppVersion-3.11.5-informational?style=flat-square)
 
 ## About
 bitbucket-runner-autoscaler Helm chart
@@ -16,7 +16,7 @@ bitbucket-runner-autoscaler Helm chart
 | cleaner.image.pullPolicy | string | `"IfNotPresent"` |  |
 | cleaner.image.registry | string | `"docker.io"` |  |
 | cleaner.image.repository | string | `"bitbucketpipelines/runners-autoscaler"` |  |
-| cleaner.image.tag | string | `"3.11.0"` |  |
+| cleaner.image.tag | string | `"3.11.5"` |  |
 | cleaner.nodeSelector | object | `{}` |  |
 | cleaner.pdb.enabled | bool | `false` |  |
 | cleaner.pdb.minAvailable | int | `1` |  |
@@ -30,7 +30,7 @@ bitbucket-runner-autoscaler Helm chart
 | controller.image.pullPolicy | string | `"IfNotPresent"` |  |
 | controller.image.registry | string | `"docker.io"` |  |
 | controller.image.repository | string | `"bitbucketpipelines/runners-autoscaler"` |  |
-| controller.image.tag | string | `"3.11.0"` |  |
+| controller.image.tag | string | `"3.11.5"` |  |
 | controller.nodeSelector | object | `{}` |  |
 | controller.pdb.enabled | bool | `false` |  |
 | controller.pdb.minAvailable | int | `1` |  |
