@@ -1,6 +1,7 @@
 nameOverride: ""
 fullnameOverride: ""
 
+# As of version 3.11.5 Bitbucket Runner Autoscaler controller/cleaner is limited to amd64 architecture.
 global:
   tolerations: []
   nodeSelector: {}
@@ -218,7 +219,7 @@ runner:
         strategy: "percentageRunnersIdle"
         # The architecture value is used to set labels on the runner in Bitbucket:
         # - amd64  → sets label to "linux" (default)
-        # - arm64  → sets label to "linux.arm"
+        # - arm64  → sets label to "linux.arm64"
         # architecture: amd64
         # Configure nodeSelector to ensure the runner is scheduled onto nodes. Default: `{}`
         # node_selector:
