@@ -1,7 +1,7 @@
 nameOverride: ""
 fullnameOverride: ""
 
-# As of version 3.11.5 Bitbucket Runner Autoscaler controller/cleaner is limited to amd64 architecture.
+# Bitbucket Runner Autoscaler controller/cleaner is limited to amd64 architecture.
 global:
   tolerations: []
   nodeSelector: {}
