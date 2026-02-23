@@ -1,6 +1,7 @@
 nameOverride: ""
 fullnameOverride: ""
 
+# As of version 3.11.5 Bitbucket Runner Autoscaler controller/cleaner is limited to amd64 architecture.
 global:
   tolerations: []
   nodeSelector: {}
@@ -12,7 +13,7 @@ controller:
   image:
     registry: docker.io
     repository: bitbucketpipelines/runners-autoscaler
-    tag: "3.9.0"
+    tag: "3.11.5"
     pullPolicy: IfNotPresent
   tolerations: []
   nodeSelector: {}
@@ -30,7 +31,7 @@ cleaner:
   image:
     registry: docker.io
     repository: bitbucketpipelines/runners-autoscaler
-    tag: "3.9.0"
+    tag: "3.11.5"
     pullPolicy: IfNotPresent
   tolerations: []
   nodeSelector: {}
@@ -77,8 +78,6 @@ runner:
     daemonConfigFile: /etc/docker/daemon.json
 
   tolerations: []
-  # only amd64 is supported for Kubernetes deployments, docs: https://bitbucket.org/bitbucketpipelines/runners-autoscaler/src/master/
-  nodeSelector: {}
   topologySpreadConstraints: []
   affinity: {}
   priorityClassName: ""
@@ -122,7 +121,12 @@ runner:
               runner_namespace: <%runner_namespace%>  # mandatory, don't modify
           spec:
             tolerations: {{ include "bitbucketRunnerAutoscaler.runnerTolerations" . | nindent 16 }}
-            nodeSelector: {{ include "bitbucketRunnerAutoscaler.runnerNodeSelector" . | nindent 16 }}
+            {%- if node_selector %}
+            nodeSelector:
+            {%- for key, value in node_selector.items() %}
+              <%key%>: <%value%>
+            {%- endfor %}
+            {%- endif %}
             topologySpreadConstraints: {{ .Values.runner.topologySpreadConstraints | toYaml | nindent 16 }}
             affinity: {{ .Values.runner.affinity | toYaml | nindent 16 }}
             priorityClassName: {{ .Values.runner.priorityClassName }}
@@ -213,6 +217,13 @@ runner:
           - "my.group"
         namespace: "bitbucket-runner"  # Target namespace for runner job and secret. Cannot be the same as the controller namespace.
         strategy: "percentageRunnersIdle"
+        # The architecture value is used to set labels on the runner in Bitbucket:
+        # - amd64  → sets label to "linux" (default)
+        # - arm64  → sets label to "linux.arm64"
+        # architecture: amd64
+        # Configure nodeSelector to ensure the runner is scheduled onto nodes. Default: `{}`
+        # node_selector:
+        #   kubernetes.io/arch: amd64
         # Set up the parameters for runners to create/delete via Bitbucket API.
         parameters:
           min: 1  # recommended minimum 1 must be in UI because fails, when new build is starting.

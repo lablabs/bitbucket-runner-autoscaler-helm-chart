@@ -130,14 +130,6 @@ Define runner tolerations
 {{- end }}
 
 {{/*
-Define runner node selector
-*/}}
-{{- define "bitbucketRunnerAutoscaler.runnerNodeSelector" -}}
-{{- $nodeSelector := .Values.runner.nodeSelector | default (dict) }}
-{{- toYaml $nodeSelector }}
-{{- end }}
-
-{{/*
 Return the controller image name
 */}}
 {{- define "bitbucketRunnerAutoscaler.controllerImage" -}}
