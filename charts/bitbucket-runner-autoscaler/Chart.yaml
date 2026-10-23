@@ -4,8 +4,8 @@ description: Chart for deploying Bitbucket Runner Autoscaler.
 
 type: application
 
-version: 0.4.0
-appVersion: 3.11.5
+version: 0.5.0
+appVersion: 3.11.7
 
 maintainers:
   - name: Labyrinth Labs
