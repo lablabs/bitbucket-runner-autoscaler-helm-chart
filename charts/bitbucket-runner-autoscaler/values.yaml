@@ -13,14 +13,16 @@ controller:
   image:
     registry: docker.io
     repository: bitbucketpipelines/runners-autoscaler
-    tag: "3.11.5"
+    tag: "3.11.7"
     pullPolicy: IfNotPresent
   tolerations: []
   nodeSelector: {}
   topologySpreadConstraints: []
   affinity: {}
   priorityClassName: ""
+  annotations: {}
   podLabels: {}
+  podAnnotations: {}
   pdb:
     enabled: false
     minAvailable: 1
@@ -31,14 +33,16 @@ cleaner:
   image:
     registry: docker.io
     repository: bitbucketpipelines/runners-autoscaler
-    tag: "3.11.5"
+    tag: "3.11.7"
     pullPolicy: IfNotPresent
   tolerations: []
   nodeSelector: {}
   topologySpreadConstraints: []
   affinity: {}
   priorityClassName: ""
+  annotations: {}
   podLabels: {}
+  podAnnotations: {}
   pdb:
     enabled: false
     minAvailable: 1

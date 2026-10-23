@@ -6,6 +6,10 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "bitbucketRunnerAutoscaler.labels" . | nindent 4 }}
+  {{- with .Values.controller.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.controller.replicas }}
   selector:
@@ -15,6 +19,10 @@ spec:
     metadata:
       labels:
         {{- include "bitbucketRunnerAutoscaler.podLabels" (dict "component" "controller" "context" .) | nindent 8 }}
+      {{- with .Values.controller.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       serviceAccountName: {{ include "bitbucketRunnerAutoscaler.serviceAccountName" . }}
       tolerations: {{ include "bitbucketRunnerAutoscaler.controllerTolerations" . | nindent 8 }}
